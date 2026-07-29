@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elvis Jiang — Responsibilities Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1E1611;--ink-2:#271D16;--panel:#34271D;--panel-2:#251B13;
+    --hair:#43342A;--hair-bright:#5C4635;--text:#FCF3E7;--muted:#C8AE93;--muted-2:#9A7E64;
+    --gold:#FFC24B;--gold-dim:#9C7220;--coral:#FF7A4D;--coral-dim:#9E4327;
+    --glow-gold:rgba(255,194,75,.42);--glow-coral:rgba(255,122,77,.5);
+    --font-display:'Space Grotesk',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--ink);color:var(--text);font-family:var(--font-body);-webkit-font-smoothing:antialiased;min-height:100vh;
+    background:radial-gradient(circle at 50% -8%, rgba(255,194,75,.08), transparent 46%), var(--ink)}
+  body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(var(--hair) 1px,transparent 1px),linear-gradient(90deg,var(--hair) 1px,transparent 1px);background-size:66px 66px;opacity:.12;mask-image:radial-gradient(circle at 50% 0%,#000 10%,transparent 68%);-webkit-mask-image:radial-gradient(circle at 50% 0%,#000 10%,transparent 68%);pointer-events:none;z-index:0}
+  .wrap{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:26px clamp(18px,5vw,44px) 80px}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:44px}
+  .brand{display:flex;align-items:baseline;gap:13px}
+  .brand__mark{font-family:var(--font-display);font-weight:700;font-size:1.2rem;letter-spacing:.14em;color:var(--ink);background:var(--gold);padding:6px 11px;border-radius:7px;line-height:1;box-shadow:0 0 26px var(--glow-gold)}
+  .brand__sys{font-family:var(--font-mono);font-size:.78rem;letter-spacing:.34em;text-transform:uppercase;color:var(--muted)}
+  .back{font-family:var(--font-mono);font-size:.8rem;letter-spacing:.08em;color:var(--muted);text-decoration:none;border:1px solid var(--hair);border-radius:8px;padding:8px 14px;transition:color .25s,border-color .25s,background .25s}
+  .back:hover,.back:focus-visible{color:var(--ink);background:var(--gold);border-color:var(--gold);outline:none}
+
+  .lede{margin-bottom:56px;max-width:760px}
+  .lede__eyebrow{font-family:var(--font-mono);font-size:.82rem;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);margin-bottom:18px}
+  .lede h1{font-family:var(--font-display);font-weight:600;font-size:clamp(2.3rem,7vw,3.9rem);line-height:1.02;letter-spacing:-.02em;margin-bottom:20px}
+  .lede h1 span{color:var(--coral)}
+  .lede p{font-size:clamp(1rem,2.4vw,1.2rem);line-height:1.6;color:var(--muted)}
+
+  .domain{display:grid;grid-template-columns:110px 1fr;gap:clamp(18px,4vw,44px);padding:40px 0;border-top:1px solid var(--hair);scroll-margin-top:24px}
+  .domain__index{font-family:var(--font-display);font-weight:700;font-size:clamp(2.6rem,6vw,3.6rem);line-height:1;color:var(--hair-bright);-webkit-text-stroke:1px var(--gold-dim)}
+  .domain__index b{display:block;font-family:var(--font-mono);font-size:.66rem;font-weight:700;letter-spacing:.16em;-webkit-text-stroke:0;color:var(--coral);margin-top:14px}
+  .domain__title{font-family:var(--font-display);font-weight:600;font-size:clamp(1.5rem,3.6vw,2.15rem);line-height:1.12;letter-spacing:-.01em;margin-bottom:18px}
+  .domain__body{font-size:clamp(1rem,2vw,1.13rem);line-height:1.66;color:#E7D8C3;max-width:640px}
+  .domain__body+.domain__body{margin-top:14px}
+  .domain__tags{list-style:none;display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
+  .domain__tags li{font-family:var(--font-mono);font-size:.76rem;letter-spacing:.02em;color:var(--muted);background:var(--panel-2);border:1px solid var(--hair);padding:6px 12px;border-radius:8px}
+  .domain__tags li.k{color:var(--gold);border-color:var(--gold-dim)}
+
+  .foot{margin-top:64px;border-top:1px solid var(--hair);padding-top:30px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .foot__loc{font-family:var(--font-mono);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2)}
+  .foot__right{display:flex;gap:11px;flex-wrap:wrap}
+  .chip{font-family:var(--font-mono);font-size:.8rem;color:var(--muted);text-decoration:none;border:1px solid var(--hair);border-radius:8px;padding:8px 14px;transition:color .25s,border-color .25s,background .25s}
+  .chip:hover,.chip:focus-visible{color:var(--ink);background:var(--gold);border-color:var(--gold);outline:none}
+
+  @media (max-width:620px){
+    .domain{grid-template-columns:1fr;gap:14px}
+    .domain__index{display:flex;align-items:baseline;gap:16px;font-size:2.4rem}
+    .domain__index b{margin-top:0}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition-duration:.01ms !important}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand"><span class="brand__mark">EJ</span><span class="brand__sys">Responsibilities Brief</span></div>
+      <a class="back" href="index.html">← Back to console</a>
+    </header>
+
+    <section class="lede">
+      <p class="lede__eyebrow">Elvis Jiang · Information Systems Engineer</p>
+      <h1>Six domains,<br><span>one operator.</span></h1>
+      <p>The platforms, pipelines and data that keep Ara Institute of Canterbury running — engineered, monitored and kept dependable end to end. Here's what sits behind each node on the console.</p>
+    </section>
+
+    <article class="domain" id="k8s">
+      <div class="domain__index">01<b>DEVOPS</b></div>
+      <div>
+        <h2 class="domain__title">Kubernetes Platform · DevOps</h2>
+        <p class="domain__body">I own the DevOps lifecycle for Ara's Kubernetes platform — building and running the pipelines that deploy applications, manage releases, and keep the cluster healthy through controlled version upgrades.</p>
+        <p class="domain__body">Alongside the container platform I administer Red Hat systems, using Ansible and related automation tooling to patch, remediate and upgrade at speed — turning one-off fixes into repeatable, consistent operations across the fleet.</p>
+        <ul class="domain__tags"><li class="k">Kubernetes</li><li>Deployment</li><li>Release Mgmt</li><li>Cluster Ops</li><li class="k">Red Hat</li><li class="k">Ansible</li><li>Upgrades</li></ul>
+      </div>
+    </article>
+
+    <article class="domain" id="sre">
+      <div class="domain__index">02<b>SRE</b></div>
+      <div>
+        <h2 class="domain__title">Reliability &amp; Observability</h2>
+        <p class="domain__body">Reliability is a practice, not a dashboard. Prometheus Operator and Grafana give me metrics, dashboards and alerting across the platform, while CheckMK extends coverage to the wider infrastructure.</p>
+        <p class="domain__body">Between them I monitor every server, Kubernetes container and application, database and network connection — so problems surface as signals I can act on, before they ever reach users.</p>
+        <ul class="domain__tags"><li class="k">Prometheus Operator</li><li class="k">Grafana</li><li class="k">CheckMK</li><li>Alerting</li><li>Dashboards</li></ul>
+      </div>
+    </article>
+
+    <article class="domain" id="tribal">
+      <div class="domain__index">03<b>SIS</b></div>
+      <div>
+        <h2 class="domain__title">Tribal SIS · Maintenance</h2>
+        <p class="domain__body">I maintain the Tribal student management system end to end — keeping data current through scheduled refreshes, running platform upgrades safely, and building the customisations the institution depends on.</p>
+        <p class="domain__body">It's a business-critical system, so the goal is continuity: every change lands without disruption to the people who rely on it.</p>
+        <ul class="domain__tags"><li class="k">Tribal SIS</li><li>Data Refresh</li><li>Upgrades</li><li>Customisation</li></ul>
+      </div>
+    </article>
+
+    <article class="domain" id="data">
+      <div class="domain__index">04<b>DATA</b></div>
+      <div>
+        <h2 class="domain__title">Database Administration</h2>
+        <p class="domain__body">I administer every database in the environment. Day to day that's remediating SQL Agent jobs, running data processing and version upgrades, and the housekeeping that keeps systems fast and correct.</p>
+        <p class="domain__body">Every day I restore from backup sets to prove recovery actually works — because a backup only counts when it comes back.</p>
+        <ul class="domain__tags"><li class="k">SQL Server</li><li>SQL Agent</li><li>Backup / Restore</li><li>Data Processing</li><li>Upgrades</li></ul>
+      </div>
+    </article>
+
+    <article class="domain" id="cloud">
+      <div class="domain__index">05<b>CLOUD</b></div>
+      <div>
+        <h2 class="domain__title">Cloud &amp; Hybrid Infrastructure</h2>
+        <p class="domain__body">I design and operate hybrid cloud. I manage the VMware estate, migrate applications and data into the cloud, and codify the whole thing as infrastructure-as-code.</p>
+        <p class="domain__body">Terraform landing zones give a governed, repeatable foundation, wired into CI/CD so every change is reviewed, versioned and shipped with confidence.</p>
+        <ul class="domain__tags"><li class="k">VMware</li><li>Hybrid Cloud</li><li class="k">Terraform</li><li>Landing Zones</li><li>CI/CD</li></ul>
+      </div>
+    </article>
+
+    <article class="domain" id="ai">
+      <div class="domain__index">06<b>AI</b></div>
+      <div>
+        <h2 class="domain__title">AI &amp; LLM Platforms</h2>
+        <p class="domain__body">I build in-house AI capability. I stand up local LLM platforms on Ollama running models such as DeepSeek and Kimi, and design retrieval-augmented generation (RAG) systems over private institutional data.</p>
+        <p class="domain__body">And I evaluate the honest question underneath it all: where large models can genuinely add value in education — and where they can't yet.</p>
+        <ul class="domain__tags"><li class="k">Ollama</li><li class="k">DeepSeek</li><li class="k">Kimi</li><li class="k">RAG</li><li>Local LLMs</li></ul>
+      </div>
+    </article>
+
+    <footer class="foot">
+      <span class="foot__loc">Christchurch · New Zealand</span>
+      <div class="foot__right">
+        <a class="chip" href="mailto:Changpo.jiang@gmail.com">Email</a>
+        <a class="chip" href="https://github.com/jiangc7" target="_blank" rel="noopener">GitHub</a>
+        <a class="chip" href="#">LinkedIn</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
