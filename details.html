@@ -9,17 +9,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1E1611;--ink-2:#271D16;--panel:#34271D;--panel-2:#251B13;
-    --hair:#43342A;--hair-bright:#5C4635;--text:#FCF3E7;--muted:#C8AE93;--muted-2:#9A7E64;
-    --gold:#FFC24B;--gold-dim:#9C7220;--coral:#FF7A4D;--coral-dim:#9E4327;
-    --glow-gold:rgba(255,194,75,.42);--glow-coral:rgba(255,122,77,.5);
+    --ink:#0F1719;--ink-2:#182421;--panel:#1A2725;--panel-2:#131D1C;
+    --hair:#26332F;--hair-bright:#3A4D47;--text:#EAF1ED;--muted:#93A79F;--muted-2:#66786F;
+    --gold:#74B4AC;--gold-dim:#3F7A72;--coral:#9CDCD1;--coral-dim:#4E8F86;
+    --glow-gold:rgba(116,180,172,.40);--glow-coral:rgba(156,220,209,.5);
     --font-display:'Space Grotesk',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{background:var(--ink);color:var(--text);font-family:var(--font-body);-webkit-font-smoothing:antialiased;min-height:100vh;
-    background:radial-gradient(circle at 50% -8%, rgba(255,194,75,.08), transparent 46%), var(--ink)}
-  body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(var(--hair) 1px,transparent 1px),linear-gradient(90deg,var(--hair) 1px,transparent 1px);background-size:66px 66px;opacity:.12;mask-image:radial-gradient(circle at 50% 0%,#000 10%,transparent 68%);-webkit-mask-image:radial-gradient(circle at 50% 0%,#000 10%,transparent 68%);pointer-events:none;z-index:0}
+    background:radial-gradient(circle at 50% -8%, rgba(116,180,172,.10), transparent 48%), var(--ink)}
+  body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(var(--hair) 1px,transparent 1px),linear-gradient(90deg,var(--hair) 1px,transparent 1px);background-size:66px 66px;opacity:.5;mask-image:radial-gradient(circle at 50% 0%,#000 8%,transparent 68%);-webkit-mask-image:radial-gradient(circle at 50% 0%,#000 8%,transparent 68%);pointer-events:none;z-index:0}
   .wrap{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:26px clamp(18px,5vw,44px) 80px}
 
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:44px}
@@ -30,16 +30,16 @@
   .back:hover,.back:focus-visible{color:var(--ink);background:var(--gold);border-color:var(--gold);outline:none}
 
   .lede{margin-bottom:56px;max-width:760px}
-  .lede__eyebrow{font-family:var(--font-mono);font-size:.82rem;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);margin-bottom:18px}
-  .lede h1{font-family:var(--font-display);font-weight:600;font-size:clamp(2.3rem,7vw,3.9rem);line-height:1.02;letter-spacing:-.02em;margin-bottom:20px}
+  .lede__eyebrow{font-family:var(--font-mono);font-size:.82rem;letter-spacing:.34em;text-transform:uppercase;color:var(--coral);margin-bottom:18px}
+  .lede h1{font-family:var(--font-display);font-weight:600;font-size:clamp(2.5rem,7.2vw,4.3rem);line-height:1.02;letter-spacing:-.02em;margin-bottom:20px}
   .lede h1 span{color:var(--coral)}
   .lede p{font-size:clamp(1rem,2.4vw,1.2rem);line-height:1.6;color:var(--muted)}
 
   .domain{display:grid;grid-template-columns:110px 1fr;gap:clamp(18px,4vw,44px);padding:40px 0;border-top:1px solid var(--hair);scroll-margin-top:24px}
   .domain__index{font-family:var(--font-display);font-weight:700;font-size:clamp(2.6rem,6vw,3.6rem);line-height:1;color:var(--hair-bright);-webkit-text-stroke:1px var(--gold-dim)}
   .domain__index b{display:block;font-family:var(--font-mono);font-size:.66rem;font-weight:700;letter-spacing:.16em;-webkit-text-stroke:0;color:var(--coral);margin-top:14px}
-  .domain__title{font-family:var(--font-display);font-weight:600;font-size:clamp(1.5rem,3.6vw,2.15rem);line-height:1.12;letter-spacing:-.01em;margin-bottom:18px}
-  .domain__body{font-size:clamp(1rem,2vw,1.13rem);line-height:1.66;color:#E7D8C3;max-width:640px}
+  .domain__title{font-family:var(--font-display);font-weight:600;font-size:clamp(1.65rem,3.8vw,2.4rem);line-height:1.12;letter-spacing:-.01em;margin-bottom:18px}
+  .domain__body{font-size:clamp(1.06rem,2.1vw,1.24rem);line-height:1.68;color:#C7D6D0;max-width:660px}
   .domain__body+.domain__body{margin-top:14px}
   .domain__tags{list-style:none;display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
   .domain__tags li{font-family:var(--font-mono);font-size:.76rem;letter-spacing:.02em;color:var(--muted);background:var(--panel-2);border:1px solid var(--hair);padding:6px 12px;border-radius:8px}
@@ -63,7 +63,7 @@
   <div class="wrap">
     <header class="topbar">
       <div class="brand"><span class="brand__mark">EJ</span><span class="brand__sys">Responsibilities Brief</span></div>
-      <a class="back" href="index.html">← Back to console</a>
+      <a class="back" href="index.html?full=1">← Back to console</a>
     </header>
 
     <section class="lede">
