@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I Dug Into Kimi K3's Architecture — Field Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,900&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3F3EE;
+    --paper-2:#ECEBE3;
+    --ink:#17191F;
+    --ink-soft:#54586220;
+    --muted:#5B5F69;
+    --rule:#D8D6CC;
+    --indigo:#33328C;
+    --indigo-soft:#33328C14;
+    --hl:#E4F26A;          /* highlighter */
+    --hl-deep:#c9dd3f;
+    --code-bg:#1A1C23;
+    --code-fg:#E8E8E1;
+    --code-dim:#8C90A0;
+    --maxw:720px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Newsreader",Georgia,serif;
+    font-size:19px;
+    line-height:1.66;
+    font-optical-sizing:auto;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  /* faint ruled-paper texture, very subtle */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:repeating-linear-gradient(to bottom, transparent 0, transparent 31px, #00000008 31px, #00000008 32px);
+    opacity:.5;
+  }
+  .wrap{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  /* ---- eyebrow / mono utility ---- */
+  .eyebrow{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--indigo);font-weight:500;
+  }
+
+  /* ---- hero ---- */
+  header.hero{padding:88px 0 44px}
+  .kicker-row{display:flex;align-items:center;gap:14px;margin-bottom:30px}
+  .kicker-row .line{height:1px;background:var(--rule);flex:1}
+  h1{
+    font-family:"Fraunces",serif;
+    font-weight:600;
+    font-size:clamp(38px,7.5vw,66px);
+    line-height:1.02;
+    letter-spacing:-.02em;
+    margin:0 0 26px;
+  }
+  h1 em{font-style:italic;font-weight:500}
+  .dek{
+    font-size:clamp(19px,2.4vw,22px);
+    color:var(--muted);
+    line-height:1.55;
+    max-width:34ch;
+    margin:0 0 34px;
+  }
+  .byline{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12.5px;color:var(--muted);letter-spacing:.02em;
+    display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;
+    padding-top:22px;border-top:1px solid var(--rule);
+  }
+  .byline b{color:var(--ink);font-weight:500}
+
+  /* ---- spec ledger ---- */
+  .ledger{
+    margin:40px 0 8px;
+    border:1px solid var(--rule);
+    background:linear-gradient(var(--paper-2),var(--paper-2));
+    border-radius:2px;
+  }
+  .ledger .lhead{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--muted);
+    padding:11px 18px;border-bottom:1px solid var(--rule);
+  }
+  .ledger dl{margin:0;display:grid;grid-template-columns:1fr 1fr}
+  .ledger .cell{padding:15px 18px;border-bottom:1px solid var(--rule)}
+  .ledger .cell:nth-child(odd){border-right:1px solid var(--rule)}
+  .ledger .cell:nth-last-child(-n+2){border-bottom:none}
+  .ledger dt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .ledger dd{margin:0;font-family:"Fraunces",serif;font-weight:500;font-size:24px;line-height:1;letter-spacing:-.01em}
+  .ledger dd small{font-family:"Newsreader",serif;font-weight:400;font-size:14px;color:var(--muted);letter-spacing:0}
+
+  /* ---- body ---- */
+  main{padding:8px 0 40px}
+  main p{margin:0 0 22px}
+  .lead{font-size:21px;line-height:1.6}
+  .lead:first-of-type::first-letter{
+    font-family:"Fraunces",serif;font-weight:600;
+    font-size:64px;line-height:.8;float:left;
+    padding:6px 12px 0 0;color:var(--indigo);
+  }
+  strong{font-weight:600;color:var(--ink)}
+  a{color:var(--indigo);text-decoration-thickness:1px;text-underline-offset:2px}
+
+  /* highlighter marker */
+  .mark{
+    background-image:linear-gradient(120deg,var(--hl),var(--hl));
+    background-repeat:no-repeat;
+    background-position:0 82%;
+    background-size:100% 46%;
+    padding:0 1px;
+    box-decoration-break:clone;-webkit-box-decoration-break:clone;
+  }
+  .anim .mark{background-size:0% 46%;transition:background-size .5s cubic-bezier(.4,.2,.2,1)}
+  .anim .mark.in{background-size:100% 46%}
+
+  /* section headers with real sequence numbers */
+  .sec{margin-top:66px;scroll-margin-top:24px}
+  .sec-num{
+    font-family:"JetBrains Mono",monospace;font-weight:700;
+    font-size:13px;letter-spacing:.1em;color:var(--indigo);
+    display:inline-block;margin-bottom:12px;
+    padding:3px 9px;border:1.5px solid var(--indigo);border-radius:2px;
+  }
+  h2{
+    font-family:"Fraunces",serif;font-weight:600;
+    font-size:clamp(27px,4.4vw,36px);line-height:1.1;
+    letter-spacing:-.015em;margin:0 0 8px;
+  }
+  h2 .sub{display:block;font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:9px}
+  h3{
+    font-family:"Fraunces",serif;font-weight:600;font-size:21px;
+    margin:34px 0 6px;letter-spacing:-.01em;
+  }
+
+  hr.div{border:none;height:1px;background:var(--rule);margin:52px 0}
+
+  /* pull-quote / official framing */
+  .quote{
+    margin:30px 0;padding:20px 24px;
+    border-left:3px solid var(--indigo);
+    background:var(--indigo-soft);
+    font-size:18px;line-height:1.56;
+  }
+  .quote .tag{
+    display:block;font-family:"JetBrains Mono",monospace;font-size:10.5px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--indigo);margin-bottom:8px;font-weight:500;
+  }
+
+  /* code block */
+  figure.code{margin:30px 0;border-radius:6px;overflow:hidden;background:var(--code-bg);box-shadow:0 1px 0 #0000000d, 0 14px 32px -18px #33328c66}
+  figure.code figcaption{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.05em;
+    color:var(--code-dim);padding:12px 18px;border-bottom:1px solid #ffffff12;
+    display:flex;align-items:center;gap:8px;
+  }
+  figure.code figcaption .dot{width:9px;height:9px;border-radius:50%;background:#ffffff22}
+  figure.code figcaption .dot.g{background:var(--hl)}
+  pre{margin:0;padding:18px 18px 20px;overflow-x:auto}
+  code,pre{font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.75}
+  pre code{color:var(--code-fg);white-space:pre}
+  .c-key{color:#c4a6ff}     /* keyword */
+  .c-num{color:#9ad1ff}
+  .c-com{color:var(--hl);opacity:.92}  /* annotation comment in highlighter tone */
+  .c-fn{color:#79e0c9}
+  p code, li code{
+    font-family:"JetBrains Mono",monospace;font-size:.82em;
+    background:#33328c12;color:var(--indigo);padding:1px 5px;border-radius:3px;
+  }
+
+  /* callout (caveats) */
+  .callout{
+    margin:34px 0;border:1px solid var(--rule);border-top:3px solid var(--ink);
+    background:var(--paper-2);padding:22px 24px;border-radius:2px;
+  }
+  .callout .clabel{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);font-weight:500;margin-bottom:10px}
+  .callout p{margin:0 0 12px}.callout p:last-child{margin:0}
+
+  /* appendix: repo list */
+  .repo{list-style:none;margin:26px 0;padding:0}
+  .repo li{padding:16px 0;border-top:1px solid var(--rule)}
+  .repo li:last-child{border-bottom:1px solid var(--rule)}
+  .repo .path{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--indigo);font-weight:500}
+  .repo .what{display:block;font-size:16px;color:var(--muted);margin-top:5px;line-height:1.5}
+
+  /* glossary */
+  .gloss{margin:24px 0}
+  .gloss div{padding:15px 0;border-top:1px solid var(--rule);display:grid;grid-template-columns:170px 1fr;gap:20px}
+  .gloss div:last-child{border-bottom:1px solid var(--rule)}
+  .gloss dt{font-family:"Fraunces",serif;font-weight:600;font-size:16px;line-height:1.3}
+  .gloss dt .en{display:block;font-family:"JetBrains Mono",monospace;font-size:10.5px;font-weight:500;letter-spacing:.05em;color:var(--muted);text-transform:none;margin-top:3px}
+  .gloss dd{margin:0;font-size:16px;line-height:1.55;color:#33363e}
+
+  footer{padding:44px 0 80px}
+  .fnote{font-size:13.5px;color:var(--muted);line-height:1.6;font-style:italic;border-top:1px solid var(--rule);padding-top:22px}
+
+  @media (max-width:640px){
+    body{font-size:18px}
+    header.hero{padding:56px 0 32px}
+    .ledger dl{grid-template-columns:1fr}
+    .ledger .cell:nth-child(odd){border-right:none}
+    .ledger .cell:nth-last-child(2){border-bottom:1px solid var(--rule)}
+    .lead:first-of-type::first-letter{font-size:52px}
+    .gloss div{grid-template-columns:1fr;gap:4px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .anim .mark{background-size:100% 46% !important;transition:none}
+    *{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker-row">
+      <span class="eyebrow">Field Notes</span>
+      <span class="line"></span>
+      <span class="eyebrow">Open Models</span>
+    </div>
+    <h1>I dug into Kimi&nbsp;K3, and found a&nbsp;few <em>genuinely fun</em> design tricks</h1>
+    <p class="dek">A 2.8-trillion-parameter open model, explained the way you'd explain it to a friend — notebooks, telephone games, and 896 consultants who never bankrupt the firm.</p>
+    <div class="byline">
+      <span><b>An explainer</b>, in plain language</span>
+      <span>·</span>
+      <span>No PhD required</span>
+      <span>·</span>
+      <span>~12 min read</span>
+    </div>
+
+    <div class="ledger" aria-label="Kimi K3 at a glance">
+      <div class="lhead">Kimi K3 — at a glance</div>
+      <dl>
+        <div class="cell"><dt>Parameters</dt><dd>2.8T <small>~104B active</small></dd></div>
+        <div class="cell"><dt>Depth</dt><dd>93 <small>layers (K2: 61)</small></dd></div>
+        <div class="cell"><dt>Context</dt><dd>1M <small>tokens</small></dd></div>
+        <div class="cell"><dt>Vision</dt><dd>Native <small>reads images</small></dd></div>
+        <div class="cell"><dt>KV cache saved</dt><dd>~75% <small>vs full attention</small></dd></div>
+        <div class="cell"><dt>Scaling gain</dt><dd>~2.5× <small>vs K2 (vendor)</small></dd></div>
+      </dl>
+    </div>
+  </header>
+
+  <main>
+    <p class="lead">A little while ago I made the rounds in Silicon Valley, and noticed something: a lot of companies have quietly started running the open model from a company called Kimi.</p>
+
+    <p>One friend took it further. He uses AI to help design AI chips — and those chips, in turn, run the AI. A closed loop. I asked him why he wasn't just using one of the big closed-source names. His answer: the customer demands that <strong>all data stay on-site</strong> — not a single byte leaves the building. So the model has to move into their own machine room. And of the models you can actually move in-house and still enjoy using, Kimi kept coming out on top.</p>
+
+    <p>Fair enough. So let's see what it's made of. With Claude's help I pulled apart Kimi K3's architecture and weights. You don't need to know any of the math — I'll keep it in plain language, and walk through the three most fun bits.</p>
+
+    <p>First, the basics worth holding onto: <strong>2.8 trillion parameters, 93 layers, a one-million-token context window, and it reads images natively.</strong> The team says that thanks to the design choices below, it squeezes roughly <strong>2.5× more capability out of the same compute</strong> than the previous generation, K2.</p>
+
+    <hr class="div">
+
+    <!-- 01 -->
+    <section class="sec" id="notebook">
+      <span class="sec-num">01</span>
+      <h2>It stops re-reading the whole book. It takes notes.<span class="sub">Kimi Delta Attention — KDA</span></h2>
+
+      <p>What a language model does all day is humble: read some text, guess the next word. But to guess well, it first has to understand each word — and a word's meaning depends on the words around it.</p>
+
+      <p>So how does a traditional model "understand"? <span class="mark">Every time it reads a new word, it flips back through <em>every</em> word it has read so far.</span> Reach the millionth word, and it re-reads the previous nine-hundred-thousand-plus, just to make sense of that one. Exhausting, right? That's exactly why old models crawl and stutter the moment the text gets long.</p>
+
+      <p>Kimi K3 says: why re-read anything — just keep a notebook. It maintains a <strong>fixed-size little notebook</strong> (the term is Kimi Delta Attention, KDA); each new word only updates the notebook, never sends it flipping back. The notebook stays the same size no matter how thick the book gets, so it never overflows.</p>
+
+      <p>There's a nice refinement, too: <span class="mark">different columns fade at different speeds</span> — keep the important stuff for many pages, let the trivia slip away at once. Same as your own bookkeeping: you remember the rent precisely, and you've long forgotten the two dollars you spent on water yesterday.</p>
+
+      <div class="quote">
+        <span class="tag">The official framing</span>
+        KDA takes Gated DeltaNet and adds "finer-grained gating," so a finite memory gets spent more wisely. Paired with full attention, it trims the <strong>KV cache by about 75%</strong> and speeds up long-context decoding by <strong>up to 6×</strong>.
+      </div>
+
+      <p><strong>And the "note-taking" is almost embarrassingly short in code.</strong> Kimi open-sourced the KDA kernel inside <code>flash-linear-attention</code>. Crack open the most readable reference version and the heart of it is three lines in a loop — forget, write, read:</p>
+
+      <figure class="code">
+        <figcaption><span class="dot"></span><span class="dot"></span><span class="dot g"></span> fla/ops/kda/naive.py &nbsp;·&nbsp; MIT</figcaption>
+<pre><code><span class="c-com"># S is the "fixed-size notebook"</span>
+<span class="c-key">for</span> i <span class="c-key">in</span> <span class="c-fn">range</span>(<span class="c-num">0</span>, T):                     <span class="c-com"># read one token at a time</span>
+    S = S * g_i.exp()                    <span class="c-com"># (1) FORGET: fade each row of notes by its own gate g</span>
+    S = S + beta_i * k_i ⊗ (v_i - k_i·S) <span class="c-com"># (2) WRITE: record only the *new* part (the delta rule)</span>
+    o[i] = q_i · S                       <span class="c-com"># (3) READ: pull the answer out with the current query</span></code></pre>
+      </figure>
+
+      <p>Notice that <code>S</code> — its shape is fixed (<code>[B, HV, K, V]</code>), and <span class="mark">has nothing to do with how long your text is.</span> That's the root reason it can read a million words without blowing up: the notebook's size is constant, only its contents keep changing.</p>
+
+      <p>And "different columns fade at different speeds" lives inside that <code>g</code>. Its real formula in the layer is <code>g = -exp(A_log) · softplus(...)</code> — one decay speed per dimension, with the minus sign and softplus there to pin it firmly into a sane range so it doesn't explode in low precision. Fancy-sounding; in plain terms, it's a "how-fast-to-forget" dial for each column.</p>
+
+      <h3>A bonus: it drops a whole step — no seat numbers</h3>
+      <p>Traditional models stamp a number on every word (that's RoPE) to say who comes before whom. K3 simply doesn't (that's NoPE) — because the notebook is written <em>in order</em> by nature: whatever was written first sits earlier, so the ordering is baked into the act of writing. Skipping that step also shakes off an old headache: no more "we ran out of seat numbers, time to re-number everything" when the text gets very long.</p>
+
+      <p><strong>This is where K3 parts ways with Llama and DeepSeek at the deepest level</strong>: those two still build on traditional full/soft attention, while K3 is the largest public model to date that dares to make linear attention the main act.</p>
+    </section>
+
+    <!-- 02 -->
+    <section class="sec" id="telephone">
+      <span class="sec-num">02</span>
+      <h2>It refuses to play the telephone game.<span class="sub">Attention Residuals</span></h2>
+
+      <p>You've played telephone, right? A line of people, each whispering to the next, and "I ate a whole watermelon" arrives at the end as <span class="mark">"I hate the old water balloon."</span></p>
+
+      <p>Inside a big model, the same whispering happens — it's stacked in layers, and information passes upward from the bottom. How many layers does Kimi K3 stack? <strong>93</strong> (the last generation had just 61). Ninety-three people passing a message down the line; by the top, the original sentence is long gone.</p>
+
+      <p>The old fix was a patch: besides hearing the previous layer, each layer could also glance at the original. It helps — but 93 layers is deep, and it's still blurry.</p>
+
+      <p>K3's move is clever: <span class="mark">it lets a later layer turn around and ask any earlier layer directly</span> — "wait, what did you actually say?" — and decide for itself: trust this layer 60%, that one 10%. No more depending on a version that's been whispered ninety times over. Want someone's words? Go straight to the source.</p>
+
+      <div class="quote">
+        <span class="tag">The official framing</span>
+        They call it <strong>Attention Residuals</strong>. In one line: let each layer <strong>selectively pull from earlier layers' representations, instead of piling them up uniformly</strong>. The cost is negligible (one small extra vector per layer); the payoff is real — the team reports ~25% better training efficiency for under 2% added cost.
+      </div>
+
+      <p>This is what lets K3 stack all the way to 93 layers and keep getting smarter instead of muddier.</p>
+    </section>
+
+    <!-- 03 -->
+    <section class="sec" id="consultants">
+      <span class="sec-num">03</span>
+      <h2>896 consultants on the books — and it barely spends a dime.<span class="sub">Stable LatentMoE</span></h2>
+
+      <p>Inside Kimi K3 sits a small army of "expert consultants" — <strong>896 of them.</strong> Sounds like a payroll headed for bankruptcy, except it isn't, because of one house rule: <span class="mark">for any given question, only the 16 most relevant experts are called into the meeting</span> (the term is Stable LatentMoE — 896 routed experts, 16 activated, plus 2 always-on ones). A thousand names on the roster, but only ~1.8% used each time: affordable to keep, and cheap to convene.</p>
+
+      <p>Anyone who's managed a team knows there are two traps here. K3 has an answer for each.</p>
+
+      <h3>Trap one: all the work goes to a few stars, everyone else slacks off</h3>
+      <p>Managers love handing work to the people they trust — so the star experts get worked to death while eight hundred others sip tea. K3 brings in a stone-faced dispatcher (Quantile Balancing) who ignores reputation and looks at one thing only: <span class="mark">how much have you already taken on today?</span> The busy ones step back, the idle ones step up — forced fair shares all round.</p>
+
+      <h3>Trap two: to assign work, you'd photocopy the thick file 896 times</h3>
+      <p>For all 896 to be assignable, the naïve way copies the whole task packet to everyone — death by photocopier. K3's fix: <span class="mark">compress the thick file into a one-page summary first, then hand it out</span> (project each token into a half-width latent space before dispatching). Saves paper, saves time, saves the office from a room full of smoking printers.</p>
+    </section>
+
+    <hr class="div">
+
+    <section class="sec" id="extras" style="margin-top:0">
+      <h2>Two more small touches</h2>
+      <p><strong>Born able to see.</strong> Many models only read text; to show them an image you bolt on a pair of "eyes," awkwardly. K3 comes with eyes built in (its vision module, MoonViT-V2, trained from scratch). Throw it a screenshot of a webpage and it can write the front-end code to match — which is a big part of why it's so strong at turning pictures into code.</p>
+
+      <p><strong>Bookkeeping in a pocket notebook.</strong> For the same ledger, some use a thick account book; others keep it just as clearly in a palm-sized one. From training onward, K3 forced itself to keep the books in "pocket" form (the low-precision MXFP4 format) — and still keeps them accurately. So even carrying 2.8 trillion parameters, it takes up less room than you'd expect and doesn't burn as much to run.</p>
+    </section>
+
+    <hr class="div">
+
+    <section class="sec" id="loop" style="margin-top:0">
+      <h2>Back to that "closed loop"</h2>
+      <p>By now you can probably see why my friend chose it. If the data has to stay on-site, the model has to move in-house — and moving in-house, you dread two things above all: <strong>too slow, too expensive.</strong> Every trick above — take notes, don't play telephone, keep consultants without overspending, book-keep in a pocket notebook — is hammering away at exactly those two words: fast and cheap. Add that it's open source, weights in hand to modify at will, and the loop starts turning: AI designs a better chip, and the better chip runs that same AI faster and cheaper.</p>
+
+      <p>Studying it this far, I felt something. Take any one of these ideas alone and you'd shrug — "that's it? not even complicated." But it's precisely a pile of "not even complicated" cleverness, stacked together, that turns a giant into something fast, cheap, and small enough to move home. <span class="mark"><strong>The genuinely impressive things rarely come from one earth-shaking masterstroke — they come from a heap of small, well-placed cleverness.</strong></span></p>
+
+      <div class="callout">
+        <div class="clabel">Two buckets of cold water, as usual</div>
+        <p>It's useful and cheap — but <strong>the very top closed-source models are still a notch stronger overall</strong>, something Kimi itself admits.</p>
+        <p>It <em>can</em> move in-house, but "in-house" here means machine-room scale — not something your gaming PC can hold.</p>
+        <p>And its open-source license is <strong>not a free-for-all</strong>: read the terms carefully before you build a real business on it.</p>
+      </div>
+
+      <p>As for how far this road runs — pull up a chair and keep watching.</p>
+    </section>
+
+    <hr class="div">
+
+    <!-- appendix 1 -->
+    <section class="sec" id="code" style="margin-top:0">
+      <span class="sec-num">A1</span>
+      <h2>Want to dig through the code yourself?</h2>
+      <p>None of the above is hand-waving — you can pull it all down and read it:</p>
+      <ul class="repo">
+        <li>
+          <span class="path">github.com/fla-org/flash-linear-attention → fla/ops/kda/</span>
+          <span class="what">The KDA kernel (those three "note-taking" lines). <code>naive.py</code> is the most readable reference; <code>chunk*.py</code> are the chunked, sped-up versions; <code>backends/flash_kda.py</code> is the high-performance kernel the team calls FlashKDA.</span>
+        </li>
+        <li>
+          <span class="path">fla/layers/kda.py → class KimiDeltaAttention</span>
+          <span class="what">The KDA network layer — q/k/v projections, the forget gate, and the output gate all live in this one file.</span>
+        </li>
+        <li>
+          <span class="path">github.com/MoonshotAI/Kimi-Linear · arXiv:2510.26692</span>
+          <span class="what">KDA's origin story, the paper, and a smaller 48B model. To get a runnable model to practice on, grab <code>moonshotai/Kimi-Linear-48B-A3B-Instruct</code>.</span>
+        </li>
+        <li>
+          <span class="path">huggingface.co/moonshotai/Kimi-K3</span>
+          <span class="what">The full K3 weights (~1.5 TB — machine-room gear only). To tinker on a small box, look for a community quantized build (GGUF).</span>
+        </li>
+        <li>
+          <span class="path">pip install fla-core  ·  vllm serve … --trust-remote-code</span>
+          <span class="what">How to run it: install <code>fla-core</code>, or stand up an OpenAI-compatible endpoint with vLLM — just remember <code>trust_remote_code</code>.</span>
+        </li>
+      </ul>
+    </section>
+
+    <hr class="div">
+
+    <!-- appendix 2: glossary -->
+    <section class="sec" id="glossary" style="margin-top:0">
+      <span class="sec-num">A2</span>
+      <h2>A pocket glossary</h2>
+      <p>The metaphors above are enough — but in case you want to sound sharp at the next dinner table, here are the terms:</p>
+      <dl class="gloss">
+        <div><dt>KV cache<span class="en">key/value cache</span></dt><dd>Where a model stores the "ledger" of words it has read, so it doesn't recompute. The old way swells as text grows, eating memory. KDA swaps it for a fixed-size state — hence ~75% saved.</dd></div>
+        <div><dt>Linear attention<span class="en">linear attention</span></dt><dd>A family of methods whose compute grows <em>linearly</em> with length instead of exploding quadratically. KDA is one of them.</dd></div>
+        <div><dt>KDA<span class="en">Kimi Delta Attention</span></dt><dd>Kimi's in-house linear attention. Descends from DeltaNet and Gated DeltaNet; K3's twist upgrades "one blanket forget switch" into "a forget dial per dimension."</dd></div>
+        <div><dt>Delta rule<span class="en">delta rule</span></dt><dd>When updating the notebook, write only the <em>new</em> part rather than rewriting the whole book. Step (2) in the code above.</dd></div>
+        <div><dt>MLA<span class="en">Multi-head Latent Attention</span></dt><dd>DeepSeek's KV-saving global attention. K3 keeps one layer in four as MLA, to handle the precise long-range look-ups that linear attention is weaker at.</dd></div>
+        <div><dt>RoPE / NoPE<span class="en">position encoding</span></dt><dd>RoPE is the mainstream way of "stamping seat numbers" on words; NoPE means not stamping at all — K3 leans on KDA's built-in ordering and drops the seat numbers.</dd></div>
+        <div><dt>MoE<span class="en">Mixture of Experts</span></dt><dd>Split one big model into many "experts," call only a small handful each time — so it holds many parameters but computes only a little per step.</dd></div>
+        <div><dt>Stable LatentMoE<span class="en">Stable LatentMoE</span></dt><dd>K3's MoE scheme: 896 routed experts + 2 always-on, 16 active per token. "Latent" = compress the material to half width before handing it out, to cut communication.</dd></div>
+        <div><dt>Quantile Balancing<span class="en">Quantile Balancing</span></dt><dd>The dispatcher that "forces fair shares by workload." The upside: no need for the old trick of adding a fussy extra loss term.</dd></div>
+        <div><dt>Attention Residuals<span class="en">Attention Residuals</span></dt><dd>The mechanism that lets "later layers turn around and name-ask earlier layers." Cures the blur of a 93-layer stack.</dd></div>
+        <div><dt>MXFP4<span class="en">quantization-aware training</span></dt><dd>A "pocket notebook" low-precision format. K3 trains in it from the start, so 2.8T parameters take up less room than you'd think.</dd></div>
+        <div><dt>MoonViT-V2<span class="en">vision module</span></dt><dd>K3's eyes. The notable part: trained <em>from scratch</em> (skipping the industry-standard contrastive warm-up) yet still reads images sharply.</dd></div>
+        <div><dt>TPOT<span class="en">time per output token</span></dt><dd>How long you wait for each word out. KDA makes it up to ~6× faster on long text — which feels like "the typing stopped lagging."</dd></div>
+      </dl>
+    </section>
+  </main>
+
+  <footer>
+    <p class="fnote">A plain-language explainer. Architecture terms, code, and figures are compiled from the Kimi K3 technical report, the Kimi Linear paper (arXiv:2510.26692), and open-source repositories (FLA, MoonshotAI); the code snippet is drawn from an MIT-licensed reference implementation. Some performance figures are the vendor's own. For discussion only — not investment or purchasing advice.</p>
+  </footer>
+
+</div>
+
+<script>
+  (function(){
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.body.classList.add('anim');
+    var marks = document.querySelectorAll('.mark');
+    if (!('IntersectionObserver' in window)) {
+      marks.forEach(function(m){m.classList.add('in')}); return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, {threshold:0.9, rootMargin:'0px 0px -8% 0px'});
+    marks.forEach(function(m){ io.observe(m); });
+  })();
+</script>
+</body>
+</html>
